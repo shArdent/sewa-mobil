@@ -1,0 +1,76 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SUPABASE_URL")
+}
+
+model admin {
+  id_admin Int     @id @default(autoincrement())
+  username String? @unique @db.VarChar(20)
+  password String? @db.VarChar(20)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model mobil {
+  id_mobil     Int         @id @default(autoincrement())
+  merk         String?     @db.VarChar(50)
+  no_polisi    String?     @db.VarChar(10)
+  warna        String?     @db.VarChar(50)
+  harga_sehari Float?
+  status       String?     @default("Tersedia")
+  tahun_keluar Int?        @default(0)
+  transaksi    transaksi[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model pelanggan {
+  id_pelanggan      Int         @id @default(autoincrement())
+  no_ktp            String?     @db.VarChar(50)
+  nama_lengkap      String?     @db.VarChar(100)
+  alamat_pelanggan  String?
+  no_telepon        String?     @db.VarChar(20)
+  status_peminjaman String?     @default("Non-Aktif")
+  transaksi         transaksi[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model pembayaran {
+  id_pembayaran    Int        @id @default(autoincrement())
+  id_transaksi     Int?
+  tgl_pembayaran   DateTime?  @db.Date
+  nama_lengkap     String?
+  jenis_pembayaran String?    @db.VarChar(20)
+  no_rek           String?    @db.VarChar(10)
+  transaksi        transaksi? @relation(fields: [id_transaksi], references: [id_transaksi], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model pengembalian {
+  id_pengembalian     Int        @id @default(autoincrement())
+  id_transaksi        Int?
+  status_pengembalian String?    @db.VarChar(20)
+  tgl_pengembalian    DateTime?  @db.Date
+  denda               Float?     @db.Real
+  transaksi           transaksi? @relation(fields: [id_transaksi], references: [id_transaksi], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model transaksi {
+  id_transaksi      Int            @id @default(autoincrement())
+  id_mobil          Int?
+  id_pelanggan      Int?
+  nama_lengkap      String?
+  tgl_sewa          DateTime?      @db.Date
+  tgl_pengembalian  DateTime?      @db.Date
+  total_harga       Float?         @default(0)
+  status_pembayaran String?        @default("Belum Lunas") @db.VarChar(20)
+  pembayaran        pembayaran[]
+  pengembalian      pengembalian[]
+  mobil             mobil?         @relation(fields: [id_mobil], references: [id_mobil], onDelete: NoAction, onUpdate: NoAction)
+  pelanggan         pelanggan?     @relation(fields: [id_pelanggan], references: [id_pelanggan], onDelete: NoAction, onUpdate: NoAction)
+}
